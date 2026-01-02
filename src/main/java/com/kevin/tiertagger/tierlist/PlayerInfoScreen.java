@@ -13,19 +13,20 @@ import net.minecraft.client.gui.widget.TextWidget;
 import net.minecraft.screen.ScreenTexts;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
-import net.uku3lig.ukulib.config.screen.CloseableScreen;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 
-public class PlayerInfoScreen extends CloseableScreen {
+public class PlayerInfoScreen extends Screen {
     private final PlayerInfo info;
     private final PlayerSkinWidget skin;
+    private final Screen parent;
 
     public PlayerInfoScreen(Screen parent, PlayerInfo info, PlayerSkinWidget skin) {
-        super(Text.of("Player Info"), parent);
+        super(Text.of("Player Info"));
+        this.parent = parent;
         this.info = info;
         this.skin = skin;
     }

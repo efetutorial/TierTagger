@@ -33,7 +33,31 @@ public class TierTaggerConfig implements Serializable {
      * <p>the field was renamed to do a little trolling and force it setting to the default value in players' config</p>
      * <p>previous name(s): {@code baseUrl}</p>
      */
-    private String apiUrl = "https://mctiers.com/api";
+    private String apiUrl = "http://tiers.lol/api";
+
+    public String getApiUrl() {
+        setApiUrl(this.apiUrl);
+        return this.apiUrl;
+    }
+
+    public void setApiUrl(String apiUrl) {
+        String def = "http://tiers.lol/api";
+        try {
+            if (apiUrl == null || apiUrl.isBlank()) {
+                this.apiUrl = def;
+                return;
+            }
+            java.net.URI uri = java.net.URI.create(apiUrl);
+            String host = uri.getHost();
+            if ("tiers.lol".equalsIgnoreCase(host)) {
+                this.apiUrl = def;
+            } else {
+                this.apiUrl = def;
+            }
+        } catch (Exception e) {
+            this.apiUrl = def;
+        }
+    }
 
     public GameMode getGameMode() {
         Optional<GameMode> opt = TierCache.findMode(this.gameMode);

@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
-  "id": "tier-tagger",
+  "id": "tier-tagger-tr",
   "version": "${version}",
-  "name": "TierTagger",
+  "name": "TierTagger-tr",
   "description": "Display player's PvP Tiers in their nametag!",
   "authors": ["uku", "netiyiy (original creator)"],
   "contact": {
-    "sources": "https://github.com/mctiers-dev/TierTagger.git"
+    "sources": "https://tiers.lol"
   },
   "license": "MPL-2.0",
   "icon": "assets/tier-tagger/icon.png",
@@ -14,9 +14,6 @@
   "entrypoints": {
     "main": [
       "com.kevin.tiertagger.TierTagger"
-    ],
-    "ukulib": [
-      "com.kevin.tiertagger.config.UkulibIntegration"
     ]
   },
   "mixins": [
@@ -24,7 +21,6 @@
   ],
   "depends": {
     "fabricloader": ">=0.17",
-    "minecraft": ">=1.21.9",
-    "ukulib": "^1.9.0"
+    "minecraft": ">=1.21.8"
   }
 }

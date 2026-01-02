@@ -7,36 +7,36 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.PlayerSkinWidget;
+import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.resource.language.I18n;
-import net.minecraft.entity.player.SkinTextures;
+import net.minecraft.client.util.SkinTextures;
 import net.minecraft.screen.ScreenTexts;
 import net.minecraft.text.Text;
 import net.minecraft.util.ApiServices;
-import net.uku3lig.ukulib.config.option.widget.TextInputWidget;
-import net.uku3lig.ukulib.config.screen.CloseableScreen;
-import net.uku3lig.ukulib.utils.Ukutils;
 
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
-public class PlayerSearchScreen extends CloseableScreen {
-    private TextInputWidget textField;
+public class PlayerSearchScreen extends Screen {
+    private final Screen parent;
+    private TextFieldWidget textField;
     private ButtonWidget searchButton;
 
     private boolean searching = false;
     private CompletableFuture<?> future = null;
 
     public PlayerSearchScreen(Screen parent) {
-        super("Player Search", parent);
+        super(Text.of("Player Search"));
+        this.parent = parent;
     }
 
     @Override
     protected void init() {
         String username = I18n.translate("tiertagger.search.user");
-        this.textField = this.addSelectableChild(new TextInputWidget(this.width / 2 - 100, 116, 200, 20,
-                "", s -> {
-        }, username, s -> s.matches("[a-zA-Z0-9_-]+"), 32));
+        this.textField = new TextFieldWidget(this.textRenderer, this.width / 2 - 100, 116, 200, 20, Text.of(username));
+        this.textField.setMaxLength(32);
+        this.addSelectableChild(this.textField);
 
         this.searchButton = this.addDrawableChild(
                 ButtonWidget.builder(Text.translatable("tiertagger.search"), button -> this.loadAndShowProfile())
@@ -49,7 +49,7 @@ public class PlayerSearchScreen extends CloseableScreen {
                             if (this.future != null) {
                                 this.future.cancel(true);
                             }
-                            this.close();
+                            MinecraftClient.getInstance().setScreen(this.parent);
                         })
                         .dimensions(this.width / 2 - 100, this.height / 4 + 120 + 12, 200, 20)
                         .build()
@@ -61,7 +61,7 @@ public class PlayerSearchScreen extends CloseableScreen {
     @Override
     public void tick() {
         super.tick();
-        this.searchButton.active = this.textField.isValid() && !searching;
+        this.searchButton.active = this.textField.getText().matches("[a-zA-Z0-9_-]+") && !searching;
     }
 
     private void loadAndShowProfile() {
@@ -69,12 +69,11 @@ public class PlayerSearchScreen extends CloseableScreen {
         this.searching = true;
         this.searchButton.setMessage(Text.translatable("tiertagger.search.loading"));
 
-        ApiServices services = MinecraftClient.getInstance().getApiServices();
         CompletableFuture<PlayerSkinWidget> skinFuture = CompletableFuture.supplyAsync(() -> {
-            GameProfile profile = services.profileResolver().getProfileByName(username)
-                    .orElseGet(() -> new GameProfile(UUID.randomUUID(), username));
+            UUID offlineId = UUID.nameUUIDFromBytes(("OfflinePlayer:" + username).getBytes());
+            GameProfile profile = new GameProfile(offlineId, username);
 
-            Supplier<SkinTextures> skinSupplier = MinecraftClient.getInstance().getSkinProvider().supplySkinTextures(profile, true);
+            Supplier<SkinTextures> skinSupplier = MinecraftClient.getInstance().getSkinProvider().getSkinTexturesSupplier(profile);
             PlayerSkinWidget skin = new PlayerSkinWidget(60, 144, MinecraftClient.getInstance().getLoadedEntityModels(), skinSupplier);
             skin.setPosition(this.width / 2 - 65, (this.height - 144) / 2);
             return skin;
@@ -85,7 +84,9 @@ public class PlayerSearchScreen extends CloseableScreen {
                 .thenAccept(screen -> MinecraftClient.getInstance().execute(() -> MinecraftClient.getInstance().setScreen(screen)))
                 .whenComplete((v, t) -> {
                     if (t != null) {
-                        Ukutils.sendToast(Text.translatable("tiertagger.search.unknown"), null);
+                        if (MinecraftClient.getInstance().player != null) {
+                            MinecraftClient.getInstance().player.sendMessage(Text.translatable("tiertagger.search.unknown"), true);
+                        }
                     }
                     this.searching = false;
                     this.searchButton.setMessage(Text.translatable("tiertagger.search"));

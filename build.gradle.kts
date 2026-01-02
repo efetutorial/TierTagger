@@ -8,9 +8,6 @@ group = project.property("maven_group") as String
 
 repositories {
     maven {
-        url = uri("https://maven.uku3lig.net/releases")
-    }
-    maven {
         url = uri("https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1")
     }
 }
@@ -22,8 +19,8 @@ dependencies {
     modImplementation("net.fabricmc:fabric-loader:${project.property("loader_version")}")
 
     modImplementation(fabricApi.module("fabric-command-api-v2", project.property("fabric_api_version") as String))
-
-    modApi("net.uku3lig:ukulib:${project.property("ukulib_version")}")
+    modImplementation(fabricApi.module("fabric-key-binding-api-v1", project.property("fabric_api_version") as String))
+    modImplementation(fabricApi.module("fabric-lifecycle-events-v1", project.property("fabric_api_version") as String))
 
     modRuntimeOnly("me.djtheredstoner:DevAuth-fabric:${project.property("devauth_version")}")
 }

@@ -9,9 +9,7 @@ import java.util.Optional;
 @Getter
 @AllArgsConstructor
 public enum TierList {
-    MCTIERS("MCTiers", "https://mctiers.com/api", '\uE901'),
-    SUBTIERS("SubTiers", "https://subtiers.net/api", '\uE902'),
-    ;
+    TIERSLOL("tierslol", "http://tiers.lol/api", '\uE901');
 
     private final String name;
     private final String url;

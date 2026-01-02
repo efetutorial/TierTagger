@@ -8,6 +8,7 @@ import com.kevin.tiertagger.config.TierTaggerConfig;
 import com.kevin.tiertagger.model.GameMode;
 import com.kevin.tiertagger.model.PlayerInfo;
 import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import lombok.Getter;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
@@ -22,9 +23,9 @@ import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
-import net.uku3lig.ukulib.config.ConfigManager;
-import net.uku3lig.ukulib.utils.PlayerArgumentType;
-import net.uku3lig.ukulib.utils.Ukutils;
+import com.kevin.tiertagger.util.ConfigManager;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,7 +46,7 @@ import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.arg
 import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal;
 
 public class TierTagger implements ModInitializer {
-    public static final String MOD_ID = "tiertagger";
+    public static final String MOD_ID = "tier-tagger-tr";
     private static final String UPDATE_URL_FORMAT = "https://api.modrinth.com/v2/project/dpkYdLu5/version?game_versions=%s";
 
     public static final Gson GSON = new GsonBuilder().create();
@@ -68,19 +69,20 @@ public class TierTagger implements ModInitializer {
 
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registry) -> dispatcher.register(
                 literal(MOD_ID)
-                        .then(argument("player", PlayerArgumentType.player())
+                        .then(argument("player", StringArgumentType.string())
                                 .executes(TierTagger::displayTierInfo))));
 
-        Ukutils.registerKeybinding(new KeyBinding("tiertagger.keybind.gamemode", GLFW.GLFW_KEY_UNKNOWN, KeyBinding.Category.create(Identifier.of("tiertagger", "key"))),
-                mc -> {
-                    GameMode next = TierCache.findNextMode(manager.getConfig().getGameMode());
-                    manager.getConfig().setGameMode(next.id());
-
-                    if (mc.player != null) {
-                        Text message = Text.literal("Displayed gamemode: ").append(next.asStyled(false));
-                        mc.player.sendMessage(message, true);
-                    }
-                });
+        KeyBinding key = KeyBindingHelper.registerKeyBinding(new KeyBinding("tiertagger.keybind.gamemode", GLFW.GLFW_KEY_UNKNOWN, "key.categories.tiertagger"));
+        ClientTickEvents.END_CLIENT_TICK.register(mc -> {
+            while (key.wasPressed()) {
+                GameMode next = TierCache.findNextMode(manager.getConfig().getGameMode());
+                manager.getConfig().setGameMode(next.id());
+                if (mc.player != null) {
+                    Text message = Text.literal("Displayed gamemode: ").append(next.asStyled(false));
+                    mc.player.sendMessage(message, true);
+                }
+            }
+        });
 
         checkForUpdates();
     }
@@ -159,22 +161,22 @@ public class TierTagger implements ModInitializer {
     }
 
     private static int displayTierInfo(CommandContext<FabricClientCommandSource> ctx) {
-        PlayerArgumentType.PlayerSelector selector = ctx.getArgument("player", PlayerArgumentType.PlayerSelector.class);
+        String selector = StringArgumentType.getString(ctx, "player");
 
         Optional<Map<String, PlayerInfo.Ranking>> rankings = ctx.getSource().getWorld().getPlayers().stream()
-                .filter(p -> p.getNameForScoreboard().equalsIgnoreCase(selector.name()) || p.getUuidAsString().equalsIgnoreCase(selector.name()))
+                .filter(p -> p.getNameForScoreboard().equalsIgnoreCase(selector) || p.getUuidAsString().equalsIgnoreCase(selector))
                 .findFirst()
                 .map(Entity::getUuid)
                 .flatMap(TierCache::getPlayerRankings);
 
         if (rankings.isPresent()) {
-            ctx.getSource().sendFeedback(printPlayerInfo(selector.name(), rankings.get()));
+            ctx.getSource().sendFeedback(printPlayerInfo(selector, rankings.get()));
         } else {
             ctx.getSource().sendFeedback(Text.of("[TierTagger] Searching..."));
-            TierCache.searchPlayer(selector.name())
-                    .thenAccept(p -> MinecraftClient.getInstance().execute(() -> ctx.getSource().sendFeedback(printPlayerInfo(selector.name(), p.rankings()))))
+            TierCache.searchPlayer(selector)
+                    .thenAccept(p -> MinecraftClient.getInstance().execute(() -> ctx.getSource().sendFeedback(printPlayerInfo(selector, p.rankings()))))
                     .exceptionally(t -> {
-                        ctx.getSource().sendError(Text.of("Could not find player " + selector.name()));
+                        ctx.getSource().sendError(Text.of("Could not find player " + selector));
                         return null;
                     });
         }
