@@ -1,4 +1,11 @@
-# Tier Tagger
-A gorgeous minecraft fabric mod which displays everyone's tier from the Vanilla Pvp Tierlist in game like this: "Ht1 | Ooh_Netiyiy"
+# <a href="https://tiers.lol">tiers.lol</a> Tier Tagger 
+Muhteşem bir Minecraft Fabric modu; herkesin Vanilla Pvp Tierlist sıralamasındaki tier'ını oyunda "Ht1 | Ooh_Netiyiy" şeklinde gösterir.
 
-Very smol but very useful mod; you'll likey likey :)
+Çok küçük ama çok kullanışlı bir mod; çok seveceksin :)
+
+Thanks to orginal devs! (<a href="https://github.com/uku3lig">uku</a>, <a href="https://github.com/netiyiy">netiyiy</a>) 
+
+
+its a fork of <a href="https://github.com/uku3lig/TierTagger">TierTagger</a>
+
+
