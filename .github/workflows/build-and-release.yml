@@ -1,0 +1,58 @@
+name: Build and Release
+
+on:
+  push:
+    branches: [ "main" ]     
+  workflow_dispatch:          
+
+permissions:
+  contents: write  
+  actions: read
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build with Gradle
+        run: ./gradlew clean build
+
+      - name: List build outputs
+        run: ls -lh build/libs
+
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: TierTagger
+          path: build/libs/TierTagger-tr-2.3.1+mc1.21.8.jar
+
+      - name: Delete previous release
+        run: gh release delete latest --yes || true
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
+      - name: Create new release
+        run: |
+          JAR_FILE="build/libs/TierTagger-tr-2.3.1+mc1.21.8.jar"
+          if [ ! -f "$JAR_FILE" ]; then
+            echo "JAR dosyası bulunamadı!"
+            exit 1
+          fi
+          echo "Uploading $JAR_FILE to release..."
+          gh release create latest "$JAR_FILE" \
+            --title "TierTagger" \
+            --notes "Automatic build from commit ${{ github.sha }}"
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
