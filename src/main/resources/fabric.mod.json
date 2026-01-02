@@ -3,8 +3,8 @@
   "id": "tier-tagger-tr",
   "version": "${version}",
   "name": "TierTagger-tr",
-  "description": "Display player's PvP Tiers in their nametag!",
-  "authors": ["uku", "netiyiy (original creator)"],
+  "description": "Oyuncuların PvP seviyelerini isim etiketlerinde göster!",
+  "authors": ["uku", "netiyiy (original creator)", "efetutorial"],
   "contact": {
     "sources": "https://tiers.lol"
   },
